@@ -1,4 +1,5 @@
 using AutoMapper;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SocialMedia.Core.Interfaces;
 using SocialMedia.Infrastructure.Data;
+using SocialMedia.Infrastructure.Filters;
 using SocialMedia.Infrastructure.Repositories;
 using System;
 using System.Collections.Generic;
@@ -31,13 +33,17 @@ namespace SocialMedia.Api
         public void ConfigureServices(IServiceCollection services)
         {
             //Add AutoMapper
-            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies()); ;
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             services.AddControllers()
                 .AddNewtonsoftJson(options => // Ignore the circular reference error
                 {
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore; 
-            });
+                })
+                .ConfigureApiBehaviorOptions(options => // To disable the validation ModelState implicity in Controller with 'ApiController' decorator to custom the error response 
+                {
+                    options.SuppressModelStateInvalidFilter = true;
+                });
 
             //ConnectionStrings for a Dbcontext
             services.AddDbContext<SocialMediaContext>(options => 
@@ -46,6 +52,16 @@ namespace SocialMedia.Api
 
             //dependecy injection with interfaces
             services.AddTransient<IPostRepository, PostRepository>();
+
+            //Configure the actionFilter as a Middleware globally
+            services.AddMvc(options =>
+            {
+                options.Filters.Add<ValidationFilter>();
+            }).AddFluentValidation(options => //Add Validators with FluentValidations package and execute as a Middleware globally
+            {
+                options.RegisterValidatorsFromAssemblies(AppDomain.CurrentDomain.GetAssemblies());
+            });
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
