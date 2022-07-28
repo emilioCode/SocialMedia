@@ -11,9 +11,9 @@ namespace SocialMedia.Infrastructure.Data.Configurations
             var entity = builder;
             entity.ToTable("Publicacion");
 
-            entity.HasKey(e => e.PostId);
+            entity.HasKey(e => e.Id);
 
-            entity.Property(e => e.PostId)
+            entity.Property(e => e.Id)
                 .HasColumnName("IdPublicacion");
 
             entity.Property(e => e.UserId)

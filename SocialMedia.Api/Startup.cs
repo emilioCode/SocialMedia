@@ -53,8 +53,10 @@ namespace SocialMedia.Api
 
             //dependecy injection with interfaces
             services.AddTransient<IPostService, PostService>();
-            services.AddTransient<IPostRepository, PostRepository>();
-            services.AddTransient<IUserRepository, UserRepository>();
+
+            services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
+
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             //Configure the actionFilter as a Middleware globally
             services.AddMvc(options =>
