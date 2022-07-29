@@ -1,7 +1,9 @@
 ﻿using SocialMedia.Core.Entities;
+using SocialMedia.Core.Exceptions;
 using SocialMedia.Core.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,9 +18,9 @@ namespace SocialMedia.Core.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<Post>> GetPosts()
+        public IEnumerable<Post> GetPosts()
         {
-            return await _unitOfWork.PostRepository.GetAll();
+            return _unitOfWork.PostRepository.GetAll();
         }
         public async Task<Post> GetPost(int id)
         {
@@ -30,24 +32,40 @@ namespace SocialMedia.Core.Services
             var user = await _unitOfWork.PostRepository.GetById(post.UserId);
             if(user == null)
             {
-                throw new Exception("User doesn't exist");
+                throw new BusinessException("User doesn't exist");
+            }
+            var userPost = await _unitOfWork.PostRepository.GetPostByUser(post.UserId);
+            if (userPost.Count() < 10)
+            {
+                var lasPost = userPost.Last();
+                var totalDays = (DateTime.Now - lasPost.Date).TotalDays;
+                if (totalDays < 7)
+                {
+                    var daystoWait =  7 - userPost.Count();
+                    var text = daystoWait + " " + ((daystoWait > 1) ? "days" : "day");
+                    throw new BusinessException($"You are not able to publish the post. You'll have to wait {text}");
+                }
             }
             if (post.Description.Contains("Sex"))
             {
-                throw new Exception("Content not allowed");
+                throw new BusinessException("Content not allowed");
             }
+
             await _unitOfWork.PostRepository.Add(post);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<bool> UpdatePost(Post post)
         {
-            await _unitOfWork.PostRepository.Update(post);
+            _unitOfWork.PostRepository.Update(post);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
         public async Task<bool> DeletePost(int id)
         {
             await _unitOfWork.PostRepository.Delete(id);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
     }

@@ -36,8 +36,11 @@ namespace SocialMedia.Api
             //Add AutoMapper
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-            services.AddControllers()
-                .AddNewtonsoftJson(options => // Ignore the circular reference error
+            services.AddControllers(options => //Add Global Exceptions Filter 'GlobalExceptionFilter' in Infrastructure/Filters (Essential to manage the responses when the service returns a BarRequest)
+                {
+                    options.Filters.Add<GlobalExceptionFilter>();
+                })
+              .AddNewtonsoftJson(options => // Ignore the circular reference error
                 {
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore; 
                 })
