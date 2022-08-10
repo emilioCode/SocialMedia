@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
 using SocialMedia.Core.CustomEntities;
 using SocialMedia.Core.Interfaces;
 using SocialMedia.Core.Services;
@@ -20,7 +21,9 @@ using SocialMedia.Infrastructure.Repositories;
 using SocialMedia.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace SocialMedia.Api
@@ -78,6 +81,33 @@ namespace SocialMedia.Api
                 return new UriService(absoluteUri);
             });
 
+            // Generate documentation with Swagger
+            services.AddSwaggerGen(doc =>
+            {
+                doc.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Title = "Social Media API",
+                    Version = "v1",
+                    Description = "An API to perform Post operations",
+                    TermsOfService = new Uri("https://example.com.terms"),
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Manuel Mendez",
+                        Email = "emilio_mem@hotmail.com",
+                        Url = new Uri("https://www.linkedin.com/in/manuel-emilio-mendez/"),
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "MIT License",
+                        Url = new Uri("https://opensource.org/licenses/MIT")
+                    }
+                });
+
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                doc.IncludeXmlComments(xmlPath);
+            });
+
             //Configure the actionFilter as a Middleware globally
             services.AddMvc(options =>
             {
@@ -100,6 +130,13 @@ namespace SocialMedia.Api
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseSwagger(); // Add Swagger to the Configuration
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "Social Media API v1");
+                options.RoutePrefix = string.Empty;
+            });
 
             app.UseAuthorization();
 

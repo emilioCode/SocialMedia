@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 
 namespace SocialMedia.Api.Controllers
 {
+    [Produces("application/json")]
     [Route("api/[controller]")]
     [ApiController]
     public class PostController : ControllerBase
@@ -31,10 +32,14 @@ namespace SocialMedia.Api.Controllers
             _mapper = mapper;
             _uriService = uriService;
         }
-
+        /// <summary>
+        /// Retrieves all posts.
+        /// </summary>
+        /// <param name="filters">filters to apply for retrieving the data required</param>
+        /// <returns></returns>
         [HttpGet(Name = nameof(GetPost))]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<IEnumerable<PostDto>>))]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(ApiResponse<IEnumerable<PostDto>>))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         public IActionResult GetPost([FromQuery]PostQueryFilter filters)
         {
             var posts = _postService.GetPosts(filters);
