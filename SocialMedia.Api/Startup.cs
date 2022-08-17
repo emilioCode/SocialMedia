@@ -161,8 +161,8 @@ namespace SocialMedia.Api
                 options.RoutePrefix = string.Empty;
             });
 
-            app.UseAuthentication();
-            app.UseAuthorization();            
+            app.UseAuthentication(); // First 
+            app.UseAuthorization();  // and Then          
 
             app.UseEndpoints(endpoints =>
             {
