@@ -62,7 +62,7 @@ namespace SocialMedia.Api.Controllers
                 _configuration["Authentication:Audience"], 
                 claims, 
                 DateTime.Now, 
-                DateTime.UtcNow.AddMinutes(2)
+                DateTime.UtcNow.AddHours(2)
             );
 
             var token = new JwtSecurityToken(header, payload);
