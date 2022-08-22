@@ -73,7 +73,7 @@ namespace SocialMedia.Api
             //dependecy injection with interfaces
             services.AddTransient<IPostService, PostService>();
             services.AddTransient<ISecurityService, SecurityService>();
-
+            services.AddTransient<IPasswordService, PasswordService>();
 
             services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
 
