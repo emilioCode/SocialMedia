@@ -2,9 +2,7 @@
 using SocialMedia.Infrastructure.Interfaces;
 using SocialMedia.Infrastructure.Options;
 using System;
-using System.Collections.Generic;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace SocialMedia.Infrastructure.Services
 {
