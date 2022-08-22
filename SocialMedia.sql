@@ -1,4 +1,4 @@
-﻿									  USE [SocialMedia]
+﻿USE [SocialMedia]
 GO
 SET ANSI_NULLS ON
 GO
@@ -286,3 +286,12 @@ ALTER TABLE [dbo].[Publicacion]  WITH NOCHECK ADD  CONSTRAINT [FK_Publicacion_Us
 REFERENCES [dbo].[Usuario] ([IdUsuario])
 GO
 ALTER TABLE [dbo].[Publicacion] CHECK CONSTRAINT [FK_Publicacion_Usuario]
+
+
+CREATE TABLE Seguridad (
+	IdSeguridad int PRIMARY KEY IDENTITY(1,1) NOT NULL,
+	Usuario varchar(50) NOT NULL,
+	NombreUsuario varchar(100) NOT NULL,
+	Contrasena varchar(200) NOT NULL,
+	Rol varchar(15) NOT NULL
+);
