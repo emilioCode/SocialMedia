@@ -19,6 +19,7 @@ using SocialMedia.Core.Services;
 using SocialMedia.Infrastructure.Data;
 using SocialMedia.Infrastructure.Filters;
 using SocialMedia.Infrastructure.Interfaces;
+using SocialMedia.Infrastructure.Options;
 using SocialMedia.Infrastructure.Repositories;
 using SocialMedia.Infrastructure.Services;
 using System;
@@ -62,6 +63,7 @@ namespace SocialMedia.Api
 
             // Create a Singleton for enviroment variables for some data in appsettings.json
             services.Configure<PaginationOptions>(Configuration.GetSection("Pagination"));
+            services.Configure<PasswordOptions>(Configuration.GetSection("PasswordOptions"));
 
             //ConnectionStrings for a Dbcontext
             services.AddDbContext<SocialMediaContext>(options => 
@@ -181,11 +183,11 @@ namespace SocialMedia.Api
             app.UseSwaggerUI(options =>
             {
                 // RoutePrefix set
-                //options.SwaggerEndpoint("../swagger/v1/swagger.json", "Social Media API v1");
+                options.SwaggerEndpoint("../swagger/v1/swagger.json", "Social Media API v1");
 
                 // RoutePrefix empty
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "Social Media API v1");
-                options.RoutePrefix = string.Empty;
+                //options.SwaggerEndpoint("/swagger/v1/swagger.json", "Social Media API v1");
+                //options.RoutePrefix = string.Empty;
             });
 
             app.UseAuthentication(); // First 
