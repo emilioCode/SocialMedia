@@ -54,7 +54,7 @@ namespace SocialMedia.Core.Services
 
         public async Task InsertPost(Post post)
         {
-            var user = await _unitOfWork.PostRepository.GetById(post.UserId);
+            var user = await _unitOfWork.UserRepository.GetById(post.UserId);
             if(user == null)
             {
                 throw new BusinessException("User doesn't exist");
@@ -75,14 +75,22 @@ namespace SocialMedia.Core.Services
             {
                 throw new BusinessException("Content not allowed");
             }
-
+            post.Date = DateTime.Now;
             await _unitOfWork.PostRepository.Add(post);
             await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<bool> UpdatePost(Post post)
         {
-            _unitOfWork.PostRepository.Update(post);
+            var existingPost = await _unitOfWork.PostRepository.GetById(post.Id);
+            if (existingPost == null)
+            {
+                throw new BusinessException("Post doesn't exist");
+            }
+            existingPost.Description = post.Description;
+            existingPost.Image = post.Image;
+
+            _unitOfWork.PostRepository.Update(existingPost);
             await _unitOfWork.SaveChangesAsync();
             return true;
         }

@@ -13,7 +13,7 @@ namespace SocialMedia.Infrastructure.Validators
                 .Length(10, 1000).WithMessage("the length should be between 10 and 1000 characters");
 
             RuleFor(post => post.Date)
-                .NotNull()
+                //.NotNull()
                .LessThan(DateTime.Now);
         }
     }

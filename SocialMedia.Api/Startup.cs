@@ -17,6 +17,7 @@ using SocialMedia.Core.CustomEntities;
 using SocialMedia.Core.Interfaces;
 using SocialMedia.Core.Services;
 using SocialMedia.Infrastructure.Data;
+using SocialMedia.Infrastructure.Extensions;
 using SocialMedia.Infrastructure.Filters;
 using SocialMedia.Infrastructure.Interfaces;
 using SocialMedia.Infrastructure.Options;
@@ -61,87 +62,19 @@ namespace SocialMedia.Api
                 options.SuppressModelStateInvalidFilter = true;
             });
 
-            // Create a Singleton for enviroment variables for some data in appsettings.json
-            services.Configure<PaginationOptions>(Configuration.GetSection("Pagination"));
-            services.Configure<PasswordOptions>(Configuration.GetSection("PasswordOptions"));
-
-            //ConnectionStrings for a Dbcontext
-            services.AddDbContext<SocialMediaContext>(options => 
-                options.UseSqlServer(Configuration.GetConnectionString("SocialMedia"))
-            );
-
-            //dependecy injection with interfaces
-            services.AddTransient<IPostService, PostService>();
-            services.AddTransient<ISecurityService, SecurityService>();
-            services.AddTransient<IPasswordService, PasswordService>();
-
-            services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
-
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-            services.AddSingleton<IUriService>(provider =>
-            {
-                var accessor = provider.GetRequiredService<IHttpContextAccessor>();
-                var request = accessor.HttpContext.Request;
-                var absoluteUri = string.Concat(request.Scheme, "://", request.Host.ToUriComponent());
-                return new UriService(absoluteUri);
-            });
-
-            // Generate documentation with Swagger
-            services.AddSwaggerGen(doc =>
-            {
-                doc.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
-                {
-                    Title = "Social Media API",
-                    Version = "v1",
-                    Description = "An API to perform Post operations",
-                    TermsOfService = new Uri("https://example.com.terms"),
-                    Contact = new OpenApiContact
-                    {
-                        Name = "Manuel Mendez",
-                        Email = "emilio_mem@hotmail.com",
-                        Url = new Uri("https://www.linkedin.com/in/manuel-emilio-mendez/"),
-                    },
-                    License = new OpenApiLicense
-                    {
-                        Name = "MIT License",
-                        Url = new Uri("https://opensource.org/licenses/MIT")
-                    }
-                });
-
-                doc.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
-                {
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer",
-                    BearerFormat = "JWT",
-                    In = ParameterLocation.Header,
-                    Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 1safsfsdfdfd\"",
-                });
-                doc.AddSecurityRequirement(new OpenApiSecurityRequirement {
-                {
-                    new OpenApiSecurityScheme {
-                        Reference = new OpenApiReference {
-                            Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                        }
-                    },
-                    new string[] {}
-                    }
-                });
-
-
-                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                doc.IncludeXmlComments(xmlPath);
-            });
+            services.AddOptions(Configuration) // Create a Singleton for enviroment variables for some data in appsettings.json
+                .AddDbContexts(Configuration); //ConnectionStrings for a Dbcontext
+            services.AddServices(); //dependecy injection with interfaces
+            services.AddSwagger($"{Assembly.GetExecutingAssembly().GetName().Name}.xml"); // Generate documentation with Swagger
 
             //JWT Authentication Configuration
-            services.AddAuthentication(options =>
+            services
+            .AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options =>
+            })
+            .AddJwtBearer(options =>
             {
                 // Scheme for Authenticating
                 options.TokenValidationParameters = new TokenValidationParameters
@@ -157,14 +90,15 @@ namespace SocialMedia.Api
             });
 
             //Configure the actionFilter as a Middleware globally
-            services.AddMvc(options =>
+            services
+            .AddMvc(options =>
             {
                 options.Filters.Add<ValidationFilter>();
-            }).AddFluentValidation(options => //Add Validators with FluentValidations package and execute as a Middleware globally
+            })
+            .AddFluentValidation(options => //Add Validators with FluentValidations package and execute as a Middleware globally
             {
                 options.RegisterValidatorsFromAssemblies(AppDomain.CurrentDomain.GetAssemblies());
             });
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -176,10 +110,9 @@ namespace SocialMedia.Api
             }
 
             app.UseHttpsRedirection();
-
             app.UseRouting();
-
             app.UseSwagger(); // Add Swagger to the Configuration
+
             app.UseSwaggerUI(options =>
             {
                 // RoutePrefix set
@@ -190,7 +123,7 @@ namespace SocialMedia.Api
                 options.RoutePrefix = string.Empty;
             });
 
-            app.UseAuthentication(); // First 
+            app.UseAuthentication(); // First   
             app.UseAuthorization();  // and Then          
 
             app.UseEndpoints(endpoints =>
